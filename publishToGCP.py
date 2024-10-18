@@ -2,6 +2,10 @@ import json
 import os
 import sys
 import configparser
+# import random
+# import string
+import uuid
+
 from google.cloud import pubsub_v1
 from datetime import datetime
 
@@ -13,6 +17,13 @@ def loadConfigurations(file_path):
 def loadPayload(file_path):
     with open(file_path, 'r') as file:
         return json.load(file)
+    
+def generateRandomContentId():
+    # random_number = ''.join(random.choices(string.digits, k=8))
+    # random_string = ''.join(random.choices(string.ascii_uppercase, k=3))
+    # return f"{random_number}-{random_string}-GR-RU-NL"
+    uniqueId = str(uuid.uuid4())
+    return f"{uniqueId}"
 
 def publishMessagestoGCP(config):
     # Create a Pub/Sub client
@@ -29,6 +40,7 @@ def publishMessagestoGCP(config):
         
         message = message_template.copy() 
         message['contents'][0]['metaDataHeader']['contentLatestUpdateDate'] = datetime.utcnow().isoformat() + 'Z'
+        message['contents'][0]['metaDataHeader']['contentId'] = generateRandomContentId()
         message_data = json.dumps(message).encode('utf-8')
         print(message)
         future = publisher.publish(topic_path, message_data)
